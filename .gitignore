@@ -16,3 +16,5 @@ gan/AutoEncoder_FashionMNIST32MSE.pth
 gan/AutoEncoder_FashionMNIST32L1.pth
 gan/AutoEncoder_FashionMNIST4MSE.pth
 gan/AutoEncoder_FashionMNIST4L1.pth
+gan/after_4_bis
+gan/mnist_data
