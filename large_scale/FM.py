@@ -1,5 +1,6 @@
 import sys
-import time
+
+import gc
 
 
 # parser = argparse.ArgumentParser() 
@@ -7,7 +8,7 @@ import time
 
 # print(sys.argv[1])
 
-start = time.time()
+
 
 # load file
 print("running", end =" ")
@@ -26,6 +27,10 @@ for i in range(len(nets)):
     except:
         print('. ')
 f.close()
+del f
+del tmp
+del nets
+gc.collect()
 
 # print(net_arr)
 # net_arr = [['9998', '11538','4630'], ['4630', '14231'], ['13254', '11807'], ['12394', '12382', '12376', '12374', '11946', '12348', '11911', '12324', '9808', '12281', '11698', '12252', '8481', '9779', '4801', '11595', '12184']]
@@ -41,10 +46,12 @@ for i,net in enumerate(net_arr):
                     for item in net2:
                         cell_connect[cell].append(item)
             cell_connect[cell] = set(cell_connect[cell])
-
+    # print(i,sys.getsizeof(cell_connect))
+del net_arr
+gc.collect()
 
 # print(cell_connect['1'])
-# print(cell_connect)
+print(cell_connect)
 # print(time.time()-start)
 
 # ==================partition=======================
@@ -52,8 +59,8 @@ for i,net in enumerate(net_arr):
 # print(len(cell_connect))
 # print(len(cells))
 
-A = cells[:int(len(cell_connect)*area_ratio)]
-B = cells[int(len(cell_connect)*area_ratio):]
+A = cells[:int(len(cell_connect)*0.5)]
+B = cells[int(len(cell_connect)*0.5):]
 # print(len(A)+len(B))
 
 A_gain = {}
@@ -91,12 +98,17 @@ B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
 #========== cut size =============
 cut_size = 0
 def cutsize():
+    print('cutsize')
+    print(A)
     global cut_size
     cut_size = 0
     for cell in A:
+        print('cell',cell)
         for pin in cell_connect[cell]:
+            print('pin ',pin)
             if pin in B:
                 cut_size += 1
+                print(pin,cut_size)
     # print(cut_size)
 
 cutsize()
@@ -171,10 +183,11 @@ while(len(A_gain) and len(B_gain)):
         min_A = A
         min_B = B
     # print(min_cut_size,min_A,min_B)
+    gc.collect()
 
 print("Cutsize = ",min_cut_size)
-min_A = sorted(min_A)
-min_B = sorted(min_B)
+min_A = sorted(list(map(int,min_A)))
+min_B = sorted(list(map(int,min_B)))
 print("G1 ",len(min_A))
 print(min_A)
 print("G2 ",len(min_B))
@@ -188,13 +201,13 @@ of.write("Cutsize = "+str(min_cut_size)+"\n")
 of.write("G1 "+str(len(min_A))+"\n")
 
 for item in min_A:
-    of.write("c"+item+" ")
+    of.write("c"+str(item)+" ")
 of.write(";\n")
 
 of.write("G2 "+str(len(min_B))+"\n")
 
 for item in min_B:
-    of.write("c"+item+" ")
+    of.write("c"+str(item)+" ")
 of.write(";\n")
 
 of.write("\n")
