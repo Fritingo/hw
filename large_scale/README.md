@@ -39,7 +39,7 @@ so
 
 
 #### connect cells
-create a dictionary key is cell and value is this key connect cells include key
+create a list the cell-1 "index" value is this cell connect other cells(pin)
 
 ```python=
 cell_connect = []
