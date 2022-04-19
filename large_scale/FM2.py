@@ -47,254 +47,257 @@ print(cell_connect)
 # =============gain================
 
 
-# A = cells[:int(len(cells)*0.5)]
-# B = cells[int(len(cells)*0.5):]
-A = [1,3,4,8]
-B = [2,5,6,7]
+A = cells[:int(len(cells)*0.5)]
+B = cells[int(len(cells)*0.5):]
+# A = [1,3,4,7]
+# B = [2,5,6,8]
 # print(len(A)+len(B))
 print('=================')
 A_gain = {}
 B_gain = {}
 
+for cell in A:
+    gain = 0
+    
+    for pin in cell_connect[cell-1]:
+        
+        if int(pin) in B:
+            gain += 1
+        else:
+            gain -= 1
+    
+    A_gain[cell] = gain
 
-# for cell in A:
-#     gain = 1
-#     for pin in cell_connect[cell]:
-#         if pin in B:
-#             gain += 1
-#         else:
-#             gain -= 1
+A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
+print(A_gain)
 
-#     A_gain[cell] = gain
+for cell in B:
+    gain = 0
+    
+    for pin in cell_connect[cell-1]:
+        
+        if int(pin) in A:
+            gain += 1
+        else:
+            gain -= 1
+    
+    B_gain[cell] = gain
 
-# # print(A_gain)
-
-# A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
-# # print(A_gain)
-
-# for cell in B:
-#     gain = 1
-#     for pin in cell_connect[cell]:
-#         if pin in A:
-#             gain += 1
-#         else:
-#             gain -= 1
-
-#     B_gain[cell] = gain
-
-# B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
-# # print(B_gain)
-
+B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
+print(B_gain)
 
 
 # #========== cut size =============
-# cut_size = 0
-# def cutsize():
-#     # print('cutsize')
-#     # print(A)
-#     global cut_size
-#     cut_size = 0
-#     for cell in A:
-#         # print('cell',cell)
-#         for pin in cell_connect[cell]:
-#             # print('pin ',pin)
-#             if pin in B:
-#                 cut_size += 1
-#                 # print(pin,cut_size)
-#     # print(cut_size)
+cut_size = 0
+def cutsize():
+    # print('cutsize')
+    # print(A)
+    global cut_size
+    cut_size = 0
+    for cell in A:
+        # print('cell',cell)
+        for pin in cell_connect[cell-1]:
+            # print('pin ',pin)
+            if int(pin) in B:
+                cut_size += 1
+                # print(pin,cut_size)
+    # print(cut_size)
 
-# cutsize()
+cutsize()
 
-# min_cut_size = cut_size
-# min_A = A
-# min_B = B
-# # print(cut_size)
-
-
-# # print('==========================')
-
-# #===============opz=====================
-# AorB = 0
-# change_cell = 'none'
+min_cut_size = cut_size
+min_A = A
+min_B = B
+print(cut_size)
 
 
-# while(len(A_gain) and len(B_gain)):
+# #===============alg=====================
+AorB = 0
+change_cell = 'none'
 
-#     # for next reverse so set reverse AorB
-#     if A_gain[list(A_gain)[0]] > B_gain[list(B_gain)[0]]:
-#         AorB = 1  
-#     else:
-#         AorB = 0
 
-#     for i in range(2):
-#         # reverse last time chage side
-#         if AorB == 0:
-#             AorB = 1 
-#             change_cell = list(B_gain)[0]
-#             A.append(change_cell)
-#             B.remove(change_cell)
+while(len(A_gain) and len(B_gain)):
 
-#         else:
-#             AorB = 0
-#             change_cell = list(A_gain)[0]
-#             B.append(change_cell)
-#             A.remove(change_cell)
+    # for next reverse so set reverse AorB
+    if A_gain[list(A_gain)[0]] > B_gain[list(B_gain)[0]]:
+        AorB = 1  
+    else:
+        AorB = 0
+
+    for i in range(2):
+        # reverse last time chage side
+        if AorB == 0:
+            AorB = 1 
+            change_cell = list(B_gain)[0]
+            A.append(change_cell)
+            B.remove(change_cell)
+
+        else:
+            AorB = 0
+            change_cell = list(A_gain)[0]
+            B.append(change_cell)
+            A.remove(change_cell)
        
-#         # print(A)
-#         # print(B)
+        # print(A)
+        # print(B)
 
-#         for cell in cell_connect[change_cell]:
-#             # print(cell)
-#             if cell != change_cell:
-#                 if cell in A_gain:
-#                     if AorB == 0:
-#                         A_gain[cell] = A_gain[cell]+2
-#                     else:
-#                         A_gain[cell] = A_gain[cell]-2
-#                 elif cell in B_gain:
-#                     if AorB == 0:
-#                         B_gain[cell] = B_gain[cell]-2
-#                     else:
-#                         B_gain[cell] = B_gain[cell]+2
-#             else:
-#                 if AorB == 0:
-#                     del A_gain[cell]
-#                 else:
-#                     del B_gain[cell]
+        for pin in cell_connect[change_cell-1]:
+            
+            if AorB == 0:
+                if int(pin) in A and int(pin) in A_gain:
+                    A_gain[int(pin)] = A_gain[int(pin)]+2
+                elif int(pin) in B_gain:
+                    B_gain[int(pin)] = B_gain[int(pin)]-2
+            else:
+                if int(pin) in A and int(pin) in A_gain:
+                    A_gain[int(pin)] = A_gain[int(pin)]-2
+                elif int(pin) in B_gain:
+                    B_gain[int(pin)] = B_gain[int(pin)]+2
+            
+        if AorB == 0:
+            del A_gain[change_cell]
+        else:
+            del B_gain[change_cell]
 
-#         A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
-#         B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
 
-#         # print(A_gain)
-#         # print(B_gain)
+        A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
+        B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
 
-#     cutsize()
-#     # print(cut_size)
-#     if cut_size < min_cut_size:
-#         min_cut_size = cut_size
-#         min_A = A
-#         min_B = B
-#     # print(min_cut_size,min_A,min_B)
-#     gc.collect()
+        # print('A: ',A)
+        # print(A_gain)
+        # print('B: ',B)
+        # print(B_gain)
 
-# print("Cutsize = ",min_cut_size)
-# min_A = sorted(list(map(int,min_A)))
-# min_B = sorted(list(map(int,min_B)))
-# print("G1 ",len(min_A))
-# print(min_A)
-# print("G2 ",len(min_B))
-# print(min_B)
+    cutsize()
+    # print(cut_size)
+    if cut_size < min_cut_size:
+        min_cut_size = cut_size
+        min_A = A
+        min_B = B
+    # print(min_cut_size,min_A,min_B)
+    gc.collect()
+
+print("Cutsize = ",min_cut_size)
+min_A = sorted(list(map(int,min_A)))
+min_B = sorted(list(map(int,min_B)))
+print("G1 ",len(min_A))
+print(min_A)
+print("G2 ",len(min_B))
+print(min_B)
 
 # #=================out file=========================
-# of = open(sys.argv[2], "w")
+of = open(sys.argv[2], "w")
 
-# of.write("Cutsize = "+str(min_cut_size)+"\n")
+of.write("Cutsize = "+str(min_cut_size)+"\n")
 
-# of.write("G1 "+str(len(min_A))+"\n")
+of.write("G1 "+str(len(min_A))+"\n")
 
-# for item in min_A:
-#     of.write("c"+str(item)+" ")
-# of.write(";\n")
+for item in min_A:
+    of.write("c"+str(item)+" ")
+of.write(";\n")
 
-# of.write("G2 "+str(len(min_B))+"\n")
+of.write("G2 "+str(len(min_B))+"\n")
 
-# for item in min_B:
-#     of.write("c"+str(item)+" ")
-# of.write(";\n")
+for item in min_B:
+    of.write("c"+str(item)+" ")
+of.write(";\n")
 
-# of.write("\n")
+of.write("\n")
 
-# of.close()
+of.close()
 
-# print("done")
+print("done")
 
 
 
 
 #     #=================unit test============================
 #     # print(A_gain[list(A_gain)[0]])
-# # if A_gain[list(A_gain)[0]] > B_gain[list(B_gain)[0]]:
-# #     AorB = 0
-# #     change_cell = list(A_gain)[0]
-# #     B.append(change_cell)
-# #     A.remove(change_cell)
+# if A_gain[list(A_gain)[0]] > B_gain[list(B_gain)[0]]:
+#     AorB = 0
+#     change_cell = list(A_gain)[0]
+#     B.append(change_cell)
+#     A.remove(change_cell)
     
-# # else:
-# #     AorB = 1
-# #     change_cell = list(B_gain)[0]
-# #     A.append(change_cell)
-# #     B.remove(change_cell)
+# else:
+#     AorB = 1
+#     change_cell = list(B_gain)[0]
+#     A.append(change_cell)
+#     B.remove(change_cell)
 
-# # print(A)
-# # print(B)
+# # # print(A)
+# # # print(B)
 
-# # # print(cell_connect[list(A_gain)[0]])
+# # # # print(cell_connect[list(A_gain)[0]])
 
-# # # print(A_gain)
-# # for cell in cell_connect[change_cell]:
-# #     # print(cell)
-# #     if cell != change_cell:
-# #         if cell in A:
-# #             if AorB == 0:
-# #                 A_gain[cell] = A_gain[cell]+2
-# #             else:
-# #                 A_gain[cell] = A_gain[cell]-2
-# #         else:
-# #             if AorB == 0:
-# #                 B_gain[cell] = B_gain[cell]-2
-# #             else:
-# #                 B_gain[cell] = B_gain[cell]+2
-# #     else:
-# #         if AorB == 0:
-# #             del A_gain[cell]
-# #         else:
-# #             del B_gain[cell]
-
-# # A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
-# # B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
-
-# # print(A_gain)
-# # print(B_gain)
-
-# # if AorB == 0:
-# #     AorB = 1
-# #     change_cell = list(B_gain)[0]
-# #     A.append(change_cell)
-# #     B.remove(change_cell)
+# # # # print(A_gain)
+# for pin in cell_connect[change_cell-1]:
+#     # print(cell)
+#     if AorB == 0:
+#         if int(pin) in A:
+#             A_gain[int(pin)] = A_gain[int(pin)]+2
+#         else:
+#             B_gain[int(pin)] = B_gain[int(pin)]-2
+#     else:
+#         if int(pin) in A:
+#             A_gain[int(pin)] = A_gain[int(pin)]-2
+#         else:
+#             B_gain[int(pin)] = B_gain[int(pin)]+2
     
-# # else:
-# #     AorB = 0
-# #     change_cell = list(A_gain)[0]
-# #     B.append(change_cell)
-# #     A.remove(change_cell)
+# if AorB == 0:
+#     del A_gain[change_cell]
+# else:
+#     del B_gain[change_cell]
 
-# # print(A)
-# # print(B)
+# A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
+# B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
 
-# # for cell in cell_connect[change_cell]:
-# #     # print(cell)
-# #     if cell != change_cell:
-# #         if cell in A_gain:
-# #             if AorB == 0:
-# #                 A_gain[cell] = A_gain[cell]+2
-# #             else:
-# #                 A_gain[cell] = A_gain[cell]-2
-# #         elif cell in B_gain:
-# #             if AorB == 0:
-# #                 B_gain[cell] = B_gain[cell]-2
-# #             else:
-# #                 B_gain[cell] = B_gain[cell]+2
-# #     else:
-# #         if AorB == 0:
-# #             del A_gain[cell]
-# #         else:
-# #             del B_gain[cell]
+# print(A_gain)
+# print(B_gain)
+# cutsize()
+# print(cut_size)
+# if AorB == 0:
+#     AorB = 1
+#     change_cell = list(B_gain)[0]
+#     A.append(change_cell)
+#     B.remove(change_cell)
+    
+# else:
+#     AorB = 0
+#     change_cell = list(A_gain)[0]
+#     B.append(change_cell)
+#     A.remove(change_cell)
 
-# # A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
-# # B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
+# # # print(A)
+# # # print(B)
 
-# # print(A_gain)
-# # print(B_gain)
+# for pin in cell_connect[change_cell-1]:
+#     # print(cell)
+#     if AorB == 0:
+#         if int(pin) in A:
+#             A_gain[int(pin)] = A_gain[int(pin)]+2
+#         else:
+#             B_gain[int(pin)] = B_gain[int(pin)]-2
+#     else:
+#         if int(pin) in A:
+#             A_gain[int(pin)] = A_gain[int(pin)]-2
+#         else:
+#             B_gain[int(pin)] = B_gain[int(pin)]+2
+    
+# if AorB == 0:
+#     del A_gain[change_cell]
+# else:
+#     del B_gain[change_cell]
+
+# A_gain = dict(sorted(A_gain.items(),key=lambda x:x[1],reverse=True))
+# B_gain = dict(sorted(B_gain.items(),key=lambda x:x[1],reverse=True))
+
+# print(A_gain)
+# print(B_gain)
+# cutsize()
+# print('A: ',A)
+# print('B: ',B)
+# print(cut_size)
 
 # # cutsize()
 # # if cut_size < min_cut_size:
