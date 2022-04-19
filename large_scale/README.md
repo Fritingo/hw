@@ -124,10 +124,10 @@ cutsize()
 ```
 
 #### iteration
-each while iteration 
-frist time select gain bigger side cell
+each while loop iteration 
+first time select gain bigger side (AorB) cell
 and next time select the other side gain bigger cell
-still any side all cells are change
+still any side all cells are change(or achieve swap time)
 
 ```python=
 while((len(A_gain) and len(B_gain)) and swap_time<100):
