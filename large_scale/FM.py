@@ -1,6 +1,8 @@
 import sys
 import gc
 
+from numpy import append
+
 # load file
 print("running", end =" ")
 f = open(sys.argv[1], "r")
@@ -27,24 +29,32 @@ gc.collect()
 print(net_arr)
 
 cell_connect = []
+connect_net = []
 
 for cell in cells:
     cell_connect.append([])
-    for net in net_arr:
+    connect_net.append([])
+    for net_i,net in enumerate(net_arr):
         if str(cell) in net:
             # print('cell ',cell,' cell_connect len ',len(cell_connect))
             idx = net.index(str(cell))
             # print('index',idx)
             if idx == 0 and len(net)>1:
                 cell_connect[cell-1].append(net[idx+1])
+                connect_net[cell-1].append(net_i+1)
             elif idx == len(net)-1:
                 cell_connect[cell-1].append(net[idx-1])
+                connect_net[cell-1].append(net_i+1)
             else:
                 cell_connect[cell-1].append(net[idx+1])
+                connect_net[cell-1].append(net_i+1)
                 cell_connect[cell-1].append(net[idx-1])
-    cell_connect[cell-1] = list(set(cell_connect[cell-1]))
+                connect_net[cell-1].append(net_i+1)
+    # cell_connect[cell-1] = list(set(cell_connect[cell-1]))
     print('cell ',cell,' connecting')
+print(net_arr)
 print(cell_connect)
+print(connect_net)
 # =============gain================
 
 
@@ -97,13 +107,19 @@ def cutsize():
     # print(A)
     global cut_size
     cut_size = 0
+    cut_net = []
     for cell in A:
         # print('cell',cell)
-        for pin in cell_connect[cell-1]:
+        for pin_i,pin in enumerate(cell_connect[cell-1]):
+            
             # print('pin ',pin)
             if int(pin) in B:
-                cut_size += 1
+                # print('inB',connect_net[cell-1][pin_i])
+                cut_net.append(connect_net[cell-1][pin_i])
+                # cut_size += 1
                 # print(pin,cut_size)
+            # print(cut_net)
+    cut_size = len(set(cut_net))
     # print(cut_size)
 
 cutsize()
