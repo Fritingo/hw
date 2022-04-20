@@ -12,7 +12,6 @@ nets = f.read().split(';')
 net_arr = []
 cells = []
 for i in range(len(nets)):
-
     try:
         tmp = nets[i].replace(' ','').replace('\n','').split('c',1)[1].split('c')
         cells = [*cells,*tmp]
