@@ -23,13 +23,16 @@ int main(int argc,char *argv[]){
     int *net = 0;
     int net_len = 0; 
     int len = 0;
+    int is_new_net = 1;
 
     int c_st = 0;
     int c_end = 0;
     int dif = 0;
     int is_cell = 0;
     for(int i=0;i<(int)fsize;i++){
-        if(string[i] == 'c'){
+        if(string[i] == ';'){
+            is_new_net = 1;
+        }else if(string[i] == 'c'){
             c_st = i;
             is_cell = 1;
         }else if(string[i] == ' ' && is_cell == 1){
@@ -43,12 +46,25 @@ int main(int argc,char *argv[]){
 
             cell = realloc(cell,sizeof(int)*(len+1));
             cell[len] = atoi(tmp);
+            if(is_new_net == 1){
+                net = realloc(net,sizeof(int)*(net_len+1));
+                net[net_len] = len;
+                is_new_net = 0;
+                net_len++;
+            }
             len++;
+            
         }
     }
     for(int i=0;i<len;i++){
         
         printf("cell %d is %d add is %p\n",i,cell[i],&cell[i]);
+    }
+    for(int i=0;i<net_len;i++){
+        // printf("net %d is start cell %d\n",i,net[i]);
+        for(int j=0;j<(net[i+1]-net[i]);j++){
+            printf("net %d has cell %d\n",i,cell[net[i]+j]);
+        }
     }
   
 }
