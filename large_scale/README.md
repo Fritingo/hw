@@ -1,8 +1,8 @@
 ## run
-`python3 [input_file] [out_file]`
+`python3 FM.py [input_file] [out_file]`
 
 ### sample
-`python3 test.in test.out`
+`python3 FM.py test.in test.out`
 
 ## explain code
 
