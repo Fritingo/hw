@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 int main(int argc,char *argv[]){
     // read file
     printf("%s\n",argv[1]);
@@ -18,17 +16,22 @@ int main(int argc,char *argv[]){
     fclose(f);
 
     string[fsize] = 0;
-
+    // net arr -> cell arr
     int *cell = 0;
     int *net = 0;
     int net_len = 0; 
     int len = 0;
     int is_new_net = 1;
 
+    // cell arr -> net arr
+    int max_cell_num = 0;
+
+    // string spilt cell and net
     int c_st = 0;
     int c_end = 0;
     int dif = 0;
     int is_cell = 0;
+
     for(int i=0;i<(int)fsize;i++){
         if(string[i] == ';'){
             is_new_net = 1;
@@ -46,6 +49,9 @@ int main(int argc,char *argv[]){
 
             cell = realloc(cell,sizeof(int)*(len+1));
             cell[len] = atoi(tmp);
+            // if (atoi(tmp)>max_cell_num){
+
+            // }
             if(is_new_net == 1){
                 net = realloc(net,sizeof(int)*(net_len+1));
                 net[net_len] = len;
