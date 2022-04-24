@@ -162,12 +162,14 @@ int main(int argc,char *argv[]){
     int mid = max_cell_num / 2;
     int G1_len = mid,G2_len = mid;
     int *G1;
-    G1 = (int *)malloc(sizeof(int)*mid);
+    
     // if cell num can't divide 2
     if(max_cell_num % 2 != 0){
-        G1 = realloc(G1,sizeof(int)*(mid+1));
-        G1[mid-1] = mid + 1; 
+        G1 = (int *)malloc(sizeof(int)*(mid+1));
+        G1[mid] = mid + 1; 
         G1_len++;
+    }else{
+        G1 = (int *)malloc(sizeof(int)*mid);
     }
     int *G2;
     G2 = (int *)malloc(sizeof(int)*mid);
