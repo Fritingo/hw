@@ -8,11 +8,29 @@ typedef struct node{
     struct node *next;
 }node;
 
-typedef struct gain{
-    int use;
-    int gain;
-    struct gain *next_gain;
-}gain;
+// row is not mandatory 
+void quicksort(int arr[][2],int left,int right){
+    if(left < right){
+        int s = arr[(left+right)/2][1];
+        int i = left - 1;
+        int j = right + 1;
+
+        while(1){
+            while(arr[++i][1] < s);
+            while(arr[--j][1] > s);
+            if(i >= j) break;
+            // swap
+            int temp0 = arr[i][0];
+            int temp1 = arr[i][1];
+            arr[i][0] = arr[j][0];
+            arr[i][1] = arr[j][1];
+            arr[j][0] = temp0;
+            arr[j][1] = temp1;
+        }
+        quicksort(arr,left,i-1);
+        quicksort(arr,j+1,right);
+    }
+}
 
 void push_node(node **head,int cell){
     node *new_node = malloc(sizeof(node));
@@ -140,36 +158,36 @@ int main(int argc,char *argv[]){
             // --------- cell connect ----------
             
 
-            if(current_cell>max_cell_num){
-                int pre_cell_num = max_cell_num;
-                max_cell_num = current_cell;
-                cell = (node **)realloc(cell,sizeof(node*)*(max_cell_num));
-                for(int cell_num=pre_cell_num;cell_num<max_cell_num;cell_num++){
-                    // printf("cell num %d\n",cell_num);
-                    push_node(&cell[cell_num],0);
-                }
-            }
-            if(is_net == 1 || first_cell == 1){
-                pre_cell = current_cell;
-                first_cell = 0;
-            }else{
-                push_node(&cell[current_cell-1],pre_cell);
-                push_node(&cell[pre_cell-1],current_cell);
-                pre_cell = current_cell;
-            }
-            
+            // if(current_cell>max_cell_num){
+            //     int pre_cell_num = max_cell_num;
+            //     max_cell_num = current_cell;
+            //     cell = (node **)realloc(cell,sizeof(node*)*(max_cell_num));
+            //     for(int cell_num=pre_cell_num;cell_num<max_cell_num;cell_num++){
+            //         // printf("cell num %d\n",cell_num);
+            //         push_node(&cell[cell_num],0);
+            //     }
+            // }
+            // if(is_net == 1 || first_cell == 1){
+            //     pre_cell = current_cell;
+            //     first_cell = 0;
+            // }else{
+            //     push_node(&cell[current_cell-1],pre_cell);
+            //     push_node(&cell[pre_cell-1],current_cell);
+            //     pre_cell = current_cell;
+            // }
+
             // for(int i=0;i<max_cell_num;i++){
             //     node *curr = cell[i];
             //     printf("cell %d: ",i+1);
+            //     printf(" %d",curr->cell);
+            //     // curr = curr->next;
             //     // printf(" %d",curr->cell);
-            //     do{
-            //         printf(" %d",curr->cell);
-            //         curr = curr->next;
-            //     }while(curr->cell != 0);
+            //     // do{
+            //     //     printf(" %d",curr->cell);
+            //     //     curr = curr->next;
+            //     // }while(curr->cell != 0);
             //     printf("\n");
             // }
-
-
             // --------- cell connect ----------
 
             // ---------- nets ----------
@@ -186,17 +204,17 @@ int main(int argc,char *argv[]){
             push_node(&net[current_net],current_cell);
 
             // --------- cell ----------
-            // if(current_cell>max_cell_num){
-            //     int pre_cell_num = max_cell_num;
-            //     max_cell_num = current_cell;
-            //     cell = (node **)realloc(cell,sizeof(node*)*(max_cell_num));
-            //     for(int cell_num=pre_cell_num;cell_num<max_cell_num;cell_num++){
-            //         // printf("cell num %d\n",cell_num);
-            //         push_node(&cell[cell_num],0);
-            //     }
-            // }
+            if(current_cell>max_cell_num){
+                int pre_cell_num = max_cell_num;
+                max_cell_num = current_cell;
+                cell = (node **)realloc(cell,sizeof(node*)*(max_cell_num));
+                for(int cell_num=pre_cell_num;cell_num<max_cell_num;cell_num++){
+                    // printf("cell num %d\n",cell_num);
+                    push_node(&cell[cell_num],0);
+                }
+            }
             
-            // push_node(&cell[current_cell-1],net_len);
+            push_node(&cell[current_cell-1],net_len);
             // --------- cell ----------
         }
     }
@@ -224,6 +242,8 @@ int main(int argc,char *argv[]){
         G2[i] = max_cell_num-i;
     }
 
+
+
     // // --------- cut size ----------
     printf("cut size %d\n",cut_size(&net[0],&G1[0],net_len,G1_len));
     int cutsize = cut_size(&net[0],&G1[0],net_len,G1_len);
@@ -231,18 +251,68 @@ int main(int argc,char *argv[]){
 
     // ----------- gain -------------
     // gain **Gain = 0;
-    // Gain = (gain **)malloc(sizeof(gain*)*max_cell_num+1);
+    // Gain = (gain **)malloc(sizeof(gain*)*max_cell_num);
+    int Gain[max_cell_num][2];
+
     
-    // gain *new_gain = malloc(sizeof(gain));
-    // new_gain->use = 0;
-    // new_gain->gain = 1;
-    // new_gain->next_gain = NULL;
-    // Gain[max_cell_num] = new_gain;
-    // gain *t = Gain[max_cell_num];
-    // printf("test %d %d\n",t->use,t->gain);
+    for(int i=0;i<max_cell_num;i++){
+        int gain_num = 0;
+        node *cell_ptr = cell[i];
+        
+        do{
+            int G1_num = 0, net_cell_num = 0;
+            // printf("test net %d\n",cell_ptr->cell);
+            node *net_ptr = net[(cell_ptr->cell)-1];
+            do{
+                // printf(" %d",net_ptr->cell);
+                net_cell_num++;
+                for(int j=0;j<G1_len;j++){
+                    if(G1[j] == net_ptr->cell){
+                        G1_num++;
+                        break;
+                    }
+                }
+                net_ptr = net_ptr->next;
+            }while(net_ptr->cell != 0);
+            // printf("\n g1 num %d net_cell_num %d\n",G1_num,net_cell_num);
+            if(G1_num != 0 && net_cell_num-G1_num !=0){
+                gain_num++;
+            }else{
+                gain_num--;
+            }
+            // printf("gain %d\n",gain_num);
+            cell_ptr = cell_ptr->next;
+        }while(cell_ptr->cell != 0);
+        
+        Gain[i][0] = i+1;
+        Gain[i][1] = gain_num;
+    }
+    for(int i=0;i<max_cell_num;i++){
+        
+        printf("cell %d gain %d\n",Gain[i][0],Gain[i][1]);
+    }
+    // ----------- sort -------------
     
+    quicksort(Gain,0,max_cell_num-1);
 
     // ----------- gain -------------
+
+    // ----------- swap -------------
+    int G1_change = 0;
+    int G2_change = 0;
+    if(Gain[max_cell_num-1][0] <= mid+1){
+        G1_change = Gain[max_cell_num-1][0];
+        int fi = 1;
+        while(Gain[max_cell_num-(++fi)][0] <= mid+1);
+        G2_change = Gain[max_cell_num-fi][0];
+    }else{
+        G2_change = Gain[max_cell_num-1][0];
+        int fi = 1;
+        while(Gain[max_cell_num-(++fi)][0] > mid+1);
+        G1_change = Gain[max_cell_num-fi][0];
+    }
+    
+
 
     // // --------- write file ----------
     write_file(argv[2],cutsize,&G1[0],G1_len,&G2[0],G2_len);
@@ -264,10 +334,20 @@ int main(int argc,char *argv[]){
         node *curr = cell[i];
         printf("cell %d: ",i+1);
         // printf(" %d",curr->cell);
+        // curr = curr->next;
+        // printf(" %d",curr->cell);
         do{
             printf(" %d",curr->cell);
             curr = curr->next;
         }while(curr->cell != 0);
         printf("\n");
     }
+
+    // print all gain
+    for(int i=0;i<max_cell_num;i++){
+        
+        printf("cell %d gain %d\n",Gain[i][0],Gain[i][1]);
+    }
+    // print max gain
+    printf("G1 max gain %d G2 max gain %d\n",G1_change,G2_change);
 }
