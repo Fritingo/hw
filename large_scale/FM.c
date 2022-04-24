@@ -90,7 +90,7 @@ int main(int argc,char *argv[]){
     string[fsize] = 0;
 
     // net with cell
-    node **net;
+    node **net = 0;
     net = (node **)malloc(sizeof(node*)*1);
     int net_len = 1; // current net len
     int current_net = 0; // current net idx
@@ -137,7 +137,7 @@ int main(int argc,char *argv[]){
     }
 
     // cell with net
-    node **cell;
+    node **cell = 0;
     cell = (node **)malloc(sizeof(node*)*1);
     int max_cell_num = 0;
     // // --------- cells ----------
@@ -161,7 +161,7 @@ int main(int argc,char *argv[]){
     // partition
     int mid = max_cell_num / 2;
     int G1_len = mid,G2_len = mid;
-    int *G1;
+    int *G1 = 0;
     
     // if cell num can't divide 2
     if(max_cell_num % 2 != 0){
@@ -171,7 +171,7 @@ int main(int argc,char *argv[]){
     }else{
         G1 = (int *)malloc(sizeof(int)*mid);
     }
-    int *G2;
+    int *G2 = 0;
     G2 = (int *)malloc(sizeof(int)*mid);
     // G1: 1 2 3 4 ...
     // G2: 8 7 6 5 ...
