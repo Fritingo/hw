@@ -23,29 +23,27 @@ void push_node(node **head,int cell){
     }
 }
 
-int cut_size(node **net,int *G,int net_len,int G_len){
+int cut_size(node **net,int *cell_G,int net_len){
     int cutsize = 0;
 
     for(int i=0;i<net_len;i++){
         node *now = net[i];
-        int G1_num = 0, net_cell_num = 0;
+        int G1_num = 0, net_cell_num = 0,G2_num = 0;
         
         do{
             net_cell_num++;
-            for(int j=0;j<G_len;j++){
-                // printf("G1 %d in net cell %d\n",G[j],now->cell);
-                if(G[j] == now->cell){
-                    G1_num++;
-                    break;
-                }
+
+            if(cell_G[(now->cell)-1] == 0){
+                G1_num++;
+            }else{
+                G2_num++;
             }
+      
             now = now->next;
 
         }while(now->cell != 0);
-        // printf("G1 num %d net_cell_num %d\n",G1_num,net_cell_num);
-        if(G1_num != 0 && net_cell_num-G1_num !=0){
-            cutsize++;
-        }
+   
+        if(G1_num != 0 && G2_num != 0 ) cutsize++;
         
     }
     return cutsize;
@@ -201,291 +199,160 @@ int main(int argc,char *argv[]){
             // // set new node (cell)
             push_node(&net[current_net],current_cell);
             
-            //============ testing ============= 
-            // --------- cell ----------
-            // if(current_cell>max_cell_num){
-            //     int pre_cell_num = max_cell_num;
-            //     max_cell_num = current_cell;
-            //     cell = (node **)realloc(cell,sizeof(node*)*(max_cell_num));
-            //     for(int cell_num=pre_cell_num;cell_num<max_cell_num;cell_num++){
-            //         // printf("cell num %d\n",cell_num);
-            //         push_node(&cell[cell_num],0);
-            //     }
-            // }
             
-            // push_node(&cell[current_cell-1],net_len);
-            // --------- cell ----------
-            //============ testing ============= 
-
         }
     }
 
 
     // // partition
+    int cell_G[max_cell_num];
+
     int mid = max_cell_num / 2;
     int G1_len = mid,G2_len = mid;
     int *G1 = 0;
-    int *G1_unlock = 0;
-    int G1_unlock_len = G1_len;
+    int unlock[max_cell_num];
+    memset(unlock, 0, max_cell_num*sizeof(int));
+    
     
     // if cell num can't divide 2
     if(max_cell_num % 2 != 0){
         G1 = (int *)malloc(sizeof(int)*(mid+1));
-        G1_unlock = (int *)malloc(sizeof(int)*(mid+1));
+        
         G1[mid] = mid + 1; 
-        G1_unlock[mid] = mid + 1;
+        
         G1_len++;
-        G1_unlock_len = G1_len;
+
     }else{
         G1 = (int *)malloc(sizeof(int)*mid);
-        G1_unlock = (int *)malloc(sizeof(int)*(mid));
+
     }
+    for(int i=0;i<G1_len;i++) cell_G[i] = 0;// G1 0
     int *G2 = 0;
-    int *G2_unlock = 0;
-    int G2_unlock_len = G2_len;
+    
 
     G2 = (int *)malloc(sizeof(int)*mid);
-    G2_unlock = (int *)malloc(sizeof(int)*mid);
+    
+
+    for(int i=0;i<G2_len;i++) cell_G[G1_len + i] = 1; // G2 1
     // G1: 1 2 3 4 ...
     // G2: 8 7 6 5 ...
     for(int i=0;i<mid;i++){
         G1[i] = i + 1;
-        G1_unlock[i] = i + 1;
+        
         G2[i] = max_cell_num - i;
-        G2_unlock[i] = max_cell_num - i;
     }
 
-    // ------------ pin cut -----------
-    int pin_cut[max_cell_num];
+    //---------- gain --------
+    int gain[max_cell_num];
+    memset(gain, 0, max_cell_num*sizeof(int));
+    for(int i=0;i<max_cell_num;i++){
+        node *pin_node = cell[i];
+        while(pin_node->cell != 0){
+            if(cell_G[pin_node->cell-1] == cell_G[i] ) gain[i]--;
+            if(cell_G[pin_node->cell-1] != cell_G[i] ) gain[i]++;
+            pin_node = pin_node->next;
+        }
+
+    }
+
+    // for(int i=0;i<max_cell_num;i++) printf("%d ",gain[i]);
+
+    int G1_max_gain_cell = 0,G1_max_gain = -1,G2_max_gain_cell = 0,G2_max_gain = -1; 
+    //  // ------------ find max gain -----------
+    for(int i=0;i<max_cell_num;i++){
+        if(gain[i] >= G1_max_gain && cell_G[i] == 0){
+            G1_max_gain_cell = i+1;
+            G1_max_gain = gain[i];
+            unlock[i] = 1;
+        }
+        if(gain[i] >= G2_max_gain && cell_G[i] == 1){
+            G2_max_gain_cell = i+1;
+            G2_max_gain = gain[i];
+            unlock[i] = 1;
+        }
+
+    } 
+    
+    
+    // printf("ttt %d\n",cell_G[G2_max_gain_cell-1]);
+
+    // for(int i=0;i<G1_len;i++) printf("G1 %d ",G1[i]);
+    // for(int i=0;i<G2_len;i++) printf("G2 %d ",G2[i]);
+
     // for(int i=0;i<max_cell_num;i++){
-    //     node *
-    // }
-
-    // ------------ swap --------------
-    int G1_max_pin_cell = 0;
-    int max_pins = 0;
-    for(int i=0;i<G1_unlock_len;i++){
-        // printf("%d pin %d\n",G1_unlock[i],cell_pins[G1_unlock[i]-1]->cell);
-        if(cell_pins[G1_unlock[i]-1]->cell > max_pins){
-            max_pins = cell_pins[G1_unlock[i]-1]->cell;
-            G1_max_pin_cell = G1_unlock[i]; 
-        }
-    }
-    int G2_max_pin_cell = 0;
-    max_pins = 0;
-    for(int i=0;i<G2_unlock_len;i++){
-        if(cell_pins[G2_unlock[i]-1]->cell > max_pins){
-            max_pins = cell_pins[G2_unlock[i]-1]->cell;
-            G2_max_pin_cell = G2_unlock[i]; 
-        }
-    }
-
-    // for(int i=0;i<G1_len;i++) printf("G1 %d\n",G1[i]);
-    // for(int i=0;i<G2_len;i++) printf("G2 %d\n",G2[i]);
-    G1[G1_max_pin_cell-1] = G2_max_pin_cell;
-    G2[max_cell_num-G2_max_pin_cell] = G1_max_pin_cell;
-    // for(int i=0;i<G1_len;i++) printf("G1 %d\n",G1[i]);
-    // for(int i=0;i<G2_len;i++) printf("G2 %d\n",G2[i]);
-
-    // ------------- update pins --------------
-    for(int i=0;i<max_cell_num;i++) printf("cell %d pins %d\n",i+1,cell_pins[i]->cell);
-    
-    node *update_ptr = cell[G1_max_pin_cell-1];
-    while(update_ptr->cell != 0){
-        int in_G1 = 0;
-        // printf("cell %d connect %d\n",G1_max_pin_cell,update_ptr->cell);
-        for(int i=0;i<G1_len;i++){
-            // printf("check G1 %d\n",G1[i]);
-            if(update_ptr->cell == G1[i]){
-                // printf("update cell %d orignal pins %d\n",update_ptr->cell,cell_pins[(update_ptr->cell)-1]->cell);
-                cell_pins[(update_ptr->cell)-1]->cell += 2;
-                
-                in_G1 = 1;
-                break;
-            }
-            
-        }
-        
-        if(in_G1 == 0) cell_pins[(update_ptr->cell)-1]->cell -= 2;
-        // printf("update cell %d to pins %d\n",update_ptr->cell,cell_pins[(update_ptr->cell)-1]->cell);
-        
-        update_ptr = update_ptr->next;
-    }
-
-    update_ptr = cell[G2_max_pin_cell-1];
-    while(update_ptr->cell != 0){
-        int in_G2 = 0;
-        // printf("cell %d connect %d\n",G1_max_pin_cell,update_ptr->cell);
-        for(int i=0;i<G2_len;i++){
-            // printf("check G1 %d\n",G1[i]);
-            if(update_ptr->cell == G2[i]){
-                // printf("update cell %d orignal pins %d\n",update_ptr->cell,cell_pins[(update_ptr->cell)-1]->cell);
-                cell_pins[(update_ptr->cell)-1]->cell += 2;
-                
-                in_G2 = 1;
-                break;
-            }
-            
-        }
-        
-        if(in_G2 == 0) cell_pins[(update_ptr->cell)-1]->cell -= 2;
-        // printf("update cell %d to pins %d\n",update_ptr->cell,cell_pins[(update_ptr->cell)-1]->cell);
-        
-        update_ptr = update_ptr->next;
-    }
-
-    for(int i=0;i<max_cell_num;i++) printf("cell %d pins %d\n",i+1,cell_pins[i]->cell);
-
-
-    // // --------- cut size ----------
-    // printf("cut size %d\n",cut_size(&net[0],&G1[0],net_len,G1_len));
-    int cutsize = cut_size(&net[0],&G1[0],net_len,G1_len);
-    // // --------- cut size ----------
-
-
-    // =========== testing ===========
-    // ----------- gain -------------
-    
-    // gain **Gain = 0;
-    // Gain = (gain **)malloc(sizeof(gain*)*max_cell_num);
-    // int Gain[max_cell_num][2];
-
-    
-    // for(int i=0;i<max_cell_num;i++){
-    //     int gain_num = 0;
-    //     node *cell_ptr = cell[i];
-        
-    //     do{
-    //         int G1_num = 0, net_cell_num = 0;
-    //         // printf("test net %d\n",cell_ptr->cell);
-    //         node *net_ptr = net[(cell_ptr->cell)-1];
-    //         do{
-    //             // printf(" %d",net_ptr->cell);
-    //             net_cell_num++;
-    //             for(int j=0;j<G1_len;j++){
-    //                 if(G1[j] == net_ptr->cell){
-    //                     G1_num++;
-    //                     break;
-    //                 }
-    //             }
-    //             net_ptr = net_ptr->next;
-    //         }while(net_ptr->cell != 0);
-    //         // printf("\n g1 num %d net_cell_num %d\n",G1_num,net_cell_num);
-    //         if(G1_num != 0 && net_cell_num-G1_num !=0){
-    //             gain_num++;
-    //         }else{
-    //             gain_num--;
-    //         }
-    //         // printf("gain %d\n",gain_num);
-    //         cell_ptr = cell_ptr->next;
-    //     }while(cell_ptr->cell != 0);
-        
-    //     Gain[i][0] = i+1;
-    //     Gain[i][1] = gain_num;
-    // }
-    // for(int i=0;i<max_cell_num;i++){
-        
-    //     printf("cell %d gain %d\n",Gain[i][0],Gain[i][1]);
-    // }
-    // ----------- sort -------------
-    // quicksort(G1_unlock,0,G1_len)
-    // quicksort(Gain,0,max_cell_num-1);
-
-    // ----------- gain -------------
-
-    // ----------- G1 G2 max gain cell -------------
-    // int G1_change = 0;
-    // int G2_change = 0;
-    // if(Gain[max_cell_num-1][0] <= mid+1){
-    //     G1_change = Gain[max_cell_num-1][0];
-    //     int fi = 1;
-    //     while(Gain[max_cell_num-(++fi)][0] <= mid+1);
-    //     G2_change = Gain[max_cell_num-fi][0];
-    // }else{
-    //     G2_change = Gain[max_cell_num-1][0];
-    //     int fi = 1;
-    //     while(Gain[max_cell_num-(++fi)][0] > mid+1);
-    //     G1_change = Gain[max_cell_num-fi][0];
-    // }
-    
-    // ----------- swap ------------
-    // G1[G1_change] = G2_change;
-    // G2[max_cell_num-G2_change] = G1_change;
-
-    // ----------- update gain ---------
-    // node *update_ptr = cell[G1_change-1];
-    // do{
-    //     int gain_num = 0;
-    //     node *update = net[(update_ptr->cell)-1];
-    //     int G1_num = 0, net_cell_num = 0;
-    //     do{
-    //         net_cell_num++;
-    //         for(int j=0;j<G1_len;j++){
-    //             if(G1[j] == update->cell){
-    //                 G1_num++;
-    //                 break;
-    //             }
-    //         }
-    //         update = update -> next;
-    //     }while(update->cell != 0);
-    //     if(G1_num != 0 && net_cell_num-G1_num !=0){
-    //         gain_num++;
-    //     }else{
-    //         gain_num--;
+    //     node *pin = cell[i];
+    //     printf("cell %d : ",i+1);
+    //     while (pin->cell != 0){
+    //         printf(" %d ",pin->cell);
+    //         pin = pin->next;
     //     }
-    //     update_ptr = update_ptr -> next;
+    //     printf("\n");
+    // }
+    
+    // for(int i=0;i<100;i++){
+        G1[G1_max_gain_cell-1] = G2_max_gain_cell;
+        G2[max_cell_num-G2_max_gain_cell] = G1_max_gain_cell;
         
-    // }while(update_ptr->cell != 0);
+        cell_G[G1_max_gain_cell-1] ^= 1;
+    //     // printf("ttt %d\n",cell_G[G2_max_gain_cell-1]);
+        cell_G[G2_max_gain_cell-1] ^= 1;
 
-    // =========== testing ===========
+        // for(int i=0;i<max_cell_num;i++) printf("G %d \n",gain[i]);
+    //     // ---------- update gain ------------
+        node *pin_node = cell[G1_max_gain_cell-1];
+        while(pin_node->cell != 0){
+            if(cell_G[pin_node->cell-1] == 0) gain[pin_node->cell-1] += 2;
+            if(cell_G[pin_node->cell-1] == 1) gain[pin_node->cell-1] -= 2;
+            pin_node = pin_node->next;
+        }
+
+        node *pin_node2 = cell[G2_max_gain_cell-1];
+        while(pin_node2->cell != 0){
+            if(cell_G[pin_node2->cell-1] == 1) gain[pin_node2->cell-1] += 2;
+            if(cell_G[pin_node2->cell-1] == 0) gain[pin_node2->cell-1] -= 2;
+            pin_node2 = pin_node2->next;
+        }
+
+        G1_max_gain_cell = 0,G1_max_gain = -1,G2_max_gain_cell = 0,G2_max_gain = -1; 
+        //  // ------------ find max gain -----------
+        for(int i=0;i<max_cell_num;i++){
+            if(gain[i] >= G1_max_gain && cell_G[i] == 0 && unlock[i] == 0){
+                G1_max_gain_cell = i+1;
+                G1_max_gain = gain[i];
+                unlock[i] = 1;
+            }
+            if(gain[i] >= G2_max_gain && cell_G[i] == 1 && unlock[i] == 0){
+                G2_max_gain_cell = i+1;
+                G2_max_gain = gain[i];
+                unlock[i] = 1;
+            }
+
+        } 
+        // for(int i=0;i<max_cell_num;i++) printf("Gt %d \n",gain[i]);
+
+        for(int i=0;i<max_cell_num;i++){
+            if(gain[i] >= G1_max_gain && cell_G[i] == 0){
+                G1_max_gain_cell = i+1;
+                G1_max_gain = gain[i];
+            }
+            if(gain[i] >= G2_max_gain && cell_G[i] == 1){
+                G2_max_gain_cell = i+1;
+                G2_max_gain = gain[i];
+            }
+
+        } 
+        
+    // }
+    
+    
+   
+    // // --------- cut size ----------
+    int cutsize = cut_size(&net[0],&cell_G[0],net_len);
+    // // --------- cut size ----------
+
+
+    
     // // --------- write file ----------
     write_file(argv[2],cutsize,&G1[0],G1_len,&G2[0],G2_len);
 
-    // // print all net
-    for(int i=0;i<net_len;i++){
-        node *now = net[i];
-        printf("net %d: ",i+1);
-        
-        do{
-            printf(" %d",now->cell);
-            now = now->next;
-        }while(now->cell != 0);
-        printf("\n");
-        // printf("test\n");
-    }
-    // // print all cell
-
-    for(int i=0;i<max_cell_num;i++){
-        node *cell_c = cell[i];
-        printf("cell %d: ",i+1);
-        // printf(" %d",cell_c->cell);
-        // cell_c = cell_c->next;
-        // printf(" %d",cell_c->cell);
-        while(cell_c->cell != 0){
-            printf(" %d",cell_c->cell);
-            cell_c = cell_c->next;
-        }
-        // do{
-        //     printf(" %d",cell_c->cell);
-        //     cell_c = cell_c->next;
-        // }while(cell_c->cell != 0);
-        printf("\n");
-    }
-    // print cell pins
-    // for(int i=0;i<max_cell_num;i++){
-    //     printf("cell %d pins %d\n",i+1,cell_pins[i]->cell);
-    // }
-    // print G1
-    // for(int i=0;i<G1_len;i++){
-    //     printf("G1 %d\n",G1_unlock[i]);
-    // }
-
-    // printf("G1 max pin cell %d\n",G1_max_pin_cell);
-
-    // for(int i=0;i<max_cell_num;i++){
-        
-    //     printf("cell %d gain %d\n",Gain[i][0],Gain[i][1]);
-    // }
-    // // print max gain
-    // printf("G1 max gain %d G2 max gain %d\n",G1_change,G2_change);
 }
