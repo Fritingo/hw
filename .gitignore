@@ -21,4 +21,5 @@ gan/mnist_data
 large_scale/IO.out
 gan/ffhq-dataset
 gan/00000
-
+gan/train.ipynb
+infer.ipynb
